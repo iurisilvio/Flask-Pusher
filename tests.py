@@ -29,6 +29,12 @@ class PusherClientTest(unittest.TestCase):
         with self.app.app_context():
             self.assertIsNotNone(pusher.client)
 
+    def test_create_extensions_map(self):
+        del self.app.extensions
+        pusher = Pusher(self.app)
+        with self.app.app_context():
+            self.assertIsNotNone(pusher.client)
+
     def test_set_app_id(self):
         app_id = "4321"
         self.app.config["PUSHER_APP_ID"] = app_id
