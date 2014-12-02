@@ -19,9 +19,9 @@ Configuration
 The basic configuration for Pusher is `app_id`, `key` and `secret`. These values are available in Pusher web interface.
 
 ```python
-PUSHER_APP_ID = ''
-PUSHER_KEY = ''
-PUSHER_SECRET = ''
+PUSHER_APP_ID = 'your-pusher-app-id'
+PUSHER_KEY = 'your-pusher-key'
+PUSHER_SECRET = 'your-pusher-secret'
 ```
 
 You can connect to a custom host/port, with these configurations:
@@ -66,6 +66,47 @@ client[channel_name].trigger('event', {
 
 Check the docs for the Pusher python client here: http://pusher.com/docs/server_api_guide#/lang=python
 
+Pusher authentication
+---------------------
+
+Pusher has authenticated private and presence channels. `Flask-Pusher` create
+the `/pusher/auth` route to handle it. To support these authenticated routes,
+just decorate a function with `@pusher.auth`.
+
+This function must return `True` for authorized and `False` for unauthorized
+users. It happens in the request context, so you have all `Flask` features,
+including for exemple the `Flask-Login` current user.
+
+```python
+from flask.ext.login import current_user
+
+@pusher.auth
+def pusher_auth(channel_name, socket_id):
+    if 'foo' in channel_name:
+        # refuse foo channels
+        return False
+    # authorize only authenticated users
+    return current_user.is_authenticated()
+```
+
+Read more about user authentication here: http://pusher.com/docs/authenticating_users
+
+Pusher channel data
+-------------------
+
+Presence channels require `channel_data`. `Flask-Pusher` send by default the
+`user_id` with the `socket_id`, because it is a required field.
+
+The `@pusher.channel_data` gives you a way to set other values. If a `user_id`
+key is returned, it overrides the default `user_id`.
+
+```python
+@pusher.channel_data
+def pusher_channel_data(channel_name, socket_id):
+    return {
+        "name": current_user.name
+    }
+```
 
 Disclaimer
 ----------
