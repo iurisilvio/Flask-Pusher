@@ -15,6 +15,7 @@ setup(
         'Flask',
         'pusher',
     ],
+    test_suite="tests",
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
