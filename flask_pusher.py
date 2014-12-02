@@ -63,14 +63,17 @@ class Pusher(object):
                 abort(403)
 
             channel = self.client[channel_name]
-            if channel_name.startswith('presence-'):
+            if channel_name.startswith("presence-"):
                 channel_data = {"user_id": socket_id}
                 if self._channel_data_handler:
                     d = self._channel_data_handler(channel_name, socket_id)
                     channel_data.update(d)
                 auth = channel.authenticate(socket_id, channel_data)
-            else:
+            elif channel_name.startswith("private-"):
                 auth = channel.authenticate(socket_id)
+            else:
+                # must never happen, this request is not from pusher
+                abort(404)
             return jsonify(auth)
 
         @bp.app_context_processor

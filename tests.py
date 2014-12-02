@@ -1,5 +1,7 @@
-import mock
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 from decimal import Decimal
 
 from flask import Flask, json, render_template_string, url_for
@@ -26,6 +28,12 @@ class PusherClientTest(unittest.TestCase):
     def test_default_config(self):
         # fallback to Pusher globals still works
         pusher = Pusher(self.app)
+        with self.app.app_context():
+            self.assertIsNotNone(pusher.client)
+
+    def test_lazy_init_app(self):
+        pusher = Pusher()
+        pusher.init_app(self.app)
         with self.app.app_context():
             self.assertIsNotNone(pusher.client)
 
@@ -105,6 +113,28 @@ class PusherAuthTest(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertIn("auth", data)
+        self.assertNotIn("channel_data", data)
+
+    def test_no_channel_data_in_private_channel(self):
+        self.pusher.auth(lambda c, s: True)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name": "private-a",
+                                          "socket_id": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.data)
+        self.assertIn("auth", data)
+        self.assertNotIn("channel_data", data)
+
+    def test_default_channel_data_in_presence_channel(self):
+        self.pusher.auth(lambda c, s: True)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name": "presence-a",
+                                          "socket_id": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.data)
+        self.assertIn("auth", data)
+        channel_data = json.loads(data["channel_data"])
+        self.assertEqual({"user_id": "1"}, channel_data)
 
     def test_channel_data_in_presence_channel(self):
         self.pusher.auth(lambda c, s: True)
@@ -118,6 +148,13 @@ class PusherAuthTest(unittest.TestCase):
         channel_data = json.loads(data["channel_data"])
         self.assertEqual("1", channel_data["user_id"])
         self.assertIn("bar", channel_data["foo"])
+
+    def test_invalid_channel(self):
+        self.pusher.auth(lambda c, s: True)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name": "foo",
+                                          "socket_id": "1"})
+        self.assertEqual(404, response.status_code)
 
 
 if __name__ == '__main__':
