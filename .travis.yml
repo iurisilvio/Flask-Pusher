@@ -5,6 +5,7 @@ python:
   - "pypy"
 
 env:
+  - FLASK=0.8
   - FLASK=0.9
   - FLASK=0.10.1
 

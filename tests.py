@@ -28,26 +28,26 @@ class PusherClientTest(unittest.TestCase):
     def test_default_config(self):
         # fallback to Pusher globals still works
         pusher = Pusher(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
 
     def test_lazy_init_app(self):
         pusher = Pusher()
         pusher.init_app(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
 
     def test_create_extensions_map(self):
         del self.app.extensions
         pusher = Pusher(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
 
     def test_set_app_id(self):
         app_id = "4321"
         self.app.config["PUSHER_APP_ID"] = app_id
         pusher = Pusher(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
             self.assertEqual(app_id, pusher.client.app_id)
 
@@ -55,7 +55,7 @@ class PusherClientTest(unittest.TestCase):
         self.app.json_encoder = CustomJSONEncoder
         pusher = Pusher(self.app)
 
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertEqual(CustomJSONEncoder, pusher.client.encoder)
 
     def test_configuration(self):
@@ -64,7 +64,7 @@ class PusherClientTest(unittest.TestCase):
         self.app.config["PUSHER_HOST"] = "example.com"
         self.app.config["PUSHER_PORT"] = 8080
         pusher = Pusher(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
             self.assertEqual("KEY", pusher.client.key)
             self.assertEqual("SUPERSECRET", pusher.client.secret)
