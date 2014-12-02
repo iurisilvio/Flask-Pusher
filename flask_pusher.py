@@ -27,7 +27,7 @@ class Pusher(object):
             secret=app.config["PUSHER_SECRET"],
             host=app.config["PUSHER_HOST"],
             port=app.config["PUSHER_PORT"],
-            encoder=app.json_encoder)
+            encoder=getattr(app, "json_encoder", None))
 
         bp = self._make_blueprint()
         app.register_blueprint(bp)

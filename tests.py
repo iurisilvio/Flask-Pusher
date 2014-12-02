@@ -74,7 +74,7 @@ class PusherClientTest(unittest.TestCase):
     def test_pusher_key_in_template(self):
         self.app.config["PUSHER_KEY"] = "KEY"
         Pusher(self.app)
-        with self.app.app_context():
+        with self.app.test_request_context():
             rendered = render_template_string("{{ PUSHER_KEY }}")
             self.assertEqual("KEY", rendered)
 
