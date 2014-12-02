@@ -10,7 +10,8 @@ env:
   - FLASK=0.10.1
 
 install:
-  - pip install -q Flask==$FLASK 
+  - pip install -q Flask==$FLASK
+  - pipi install unittest2
   - python setup.py install
 
 script:  python tests.py
