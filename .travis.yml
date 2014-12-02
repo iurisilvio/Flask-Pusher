@@ -11,7 +11,7 @@ env:
 
 install:
   - pip install -q Flask==$FLASK
-  - pipi install unittest2
+  - pip install unittest2
   - python setup.py install
 
 script:  python tests.py
