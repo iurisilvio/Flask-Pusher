@@ -11,7 +11,11 @@ env:
 
 install:
   - pip install -q Flask==$FLASK
-  - pip install unittest2
+  - pip install unittest2 coverage coveralls
   - python setup.py install
 
-script:  python tests.py
+script:
+  - coverage run --source=flask_pusher setup.py test
+
+after_success:
+  - coveralls
