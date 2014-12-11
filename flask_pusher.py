@@ -1,7 +1,11 @@
 import hashlib
 import hmac
 
-from flask import Blueprint, current_app, request, jsonify, abort
+from flask import Blueprint, current_app, request, abort
+try:
+    from flask.ext.jsonpify import jsonify
+except ImportError:
+    from flask import jsonify
 
 import pusher as _pusher
 
