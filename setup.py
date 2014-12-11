@@ -14,6 +14,7 @@ setup(
     install_requires=[
         'Flask',
         'pusher',
+        'Flask-Jsonpify',  # for jsonp auth support
     ],
     test_suite="tests",
     classifiers=[
