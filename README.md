@@ -101,12 +101,42 @@ The `@pusher.channel_data` gives you a way to set other values. If a `user_id`
 key is returned, it overrides the default `user_id`.
 
 ```python
+from flask.ext.login import current_user
+
 @pusher.channel_data
 def pusher_channel_data(channel_name, socket_id):
     return {
         "name": current_user.name
     }
 ```
+
+Pusher webhooks
+---------------
+
+Pusher has webhooks to send websocket events to your server.
+
+Flask-Pusher create the routes to handle these webhooks and validate the headers `X-Pusher-Key` and `X-Pusher-Signature`.
+
+```python
+from flask import request
+
+@pusher.webhooks.channel_existence
+def channel_existence_webhook():
+    print request.json
+
+@pusher.webhooks.presence
+def presence_webhook():
+    print request.json
+
+@pusher.webhooks.client
+def client_webhook():
+    print request.json
+```
+
+The JSON request is documented in Pusher docs: http://pusher.com/docs/webhooks
+
+These webhooks routes are mounted in `/pusher/events/channel_existence`, `/pusher/events/presence` and `/pusher/events/client`. Configure your Pusher app to send webhooks to these routes.
+
 
 Disclaimer
 ----------
