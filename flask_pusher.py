@@ -94,24 +94,27 @@ class Pusher(object):
 
 class Webhooks(object):
 
+    CHANNEL_EXISTENCE_EVENT = "channel_existence"
+    PRESENCE_EVENT = "presence"
+    CLIENT_EVENT = "client"
+
     def __init__(self, pusher):
         self.pusher = pusher
         self._handlers = {}
-        self._register("channel_existence")
-        self._register("presence")
-        self._register("client")
+        self._register(self.CHANNEL_EXISTENCE_EVENT)
+        self._register(self.PRESENCE_EVENT)
+        self._register(self.CLIENT_EVENT)
 
     def channel_existence(self, func):
-        return self._event("channel_existence", func)
+        self._handlers[self.CHANNEL_EXISTENCE_EVENT] = func
+        return func
 
     def presence(self, func):
-        return self._event("presence", func)
+        self._handlers[self.PRESENCE_EVENT] = func
+        return func
 
     def client(self, func):
-        return self._event("client", func)
-
-    def _event(self, event, func):
-        self._handlers[event] = func
+        self._handlers[self.CLIENT_EVENT] = func
         return func
 
     def _register(self, event):
@@ -127,7 +130,6 @@ class Webhooks(object):
         name = "%s_event" % event
         self.pusher._blueprint.add_url_rule(rule, name, route,
                                             methods=["POST"])
-        return route
 
     def _validate(self):
         pusher_key = request.headers.get("X-Pusher-Key")
