@@ -1,5 +1,8 @@
 Flask-Pusher
 ============
+[![Build Status](https://travis-ci.org/iurisilvio/Flask-Pusher.svg?branch=master)](https://travis-ci.org/iurisilvio/Flask-Pusher)
+[![Coverage Status](https://coveralls.io/repos/iurisilvio/Flask-Pusher/badge.png?branch=master)](https://coveralls.io/r/iurisilvio/Flask-Pusher?branch=master)
+
 
 Flask extension for Pusher. It is a thin wrapper around the official client,
 binding Flask app to Pusher client.
