@@ -157,5 +157,77 @@ class PusherAuthTest(unittest.TestCase):
         self.assertEqual(404, response.status_code)
 
 
+class PusherWebhookTest(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.debug = True
+        self.app.config["PUSHER_KEY"] = "KEY"
+        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
+        self.pusher = Pusher(self.app)
+        self.client = self.app.test_client()
+        self._called = False
+
+        @self.pusher.webhooks.client
+        def c():
+            self._called = True
+
+    def test_no_webhook(self):
+        with self.app.test_request_context():
+            url = url_for("pusher.presence_event")
+        response = self.client.post(url)
+        self.assertEqual(404, response.status_code)
+        self.assertFalse(self._called)
+
+    def test_without_key_forbidden(self):
+        with self.app.test_request_context():
+            url = url_for("pusher.client_event")
+        response = self.client.post(url)
+        self.assertEqual(403, response.status_code)
+        self.assertFalse(self._called)
+
+    def test_invalid_key_forbidden(self):
+        with self.app.test_request_context():
+            url = url_for("pusher.client_event")
+        response = self.client.post(url, headers={
+            "Content-Type": "application/json",
+            "X-Pusher-Key": "meh"
+        })
+        self.assertEqual(403, response.status_code)
+        self.assertFalse(self._called)
+
+    def test_valid_key_forbidden_without_signature(self):
+        with self.app.test_request_context():
+            url = url_for("pusher.client_event")
+        response = self.client.post(url, headers={
+            "Content-Type": "application/json",
+            "X-Pusher-Key": "KEY"
+        })
+        self.assertEqual(403, response.status_code)
+        self.assertFalse(self._called)
+
+    def test_invalid_signature(self):
+        with self.app.test_request_context():
+            url = url_for("pusher.client_event")
+        response = self.client.post(url, headers={
+            "Content-Type": "application/json",
+            "X-Pusher-Key": "KEY",
+            "X-Pusher-Signature": "x"
+        })
+        self.assertEqual(403, response.status_code)
+        self.assertFalse(self._called)
+
+    def test_valid_signature(self):
+        data = '{"a": "b"}'
+        with self.app.test_request_context():
+            url = url_for("pusher.client_event")
+            signature = self.pusher._sign(data)
+        response = self.client.post(url, data=data, headers={
+            "Content-Type": "application/json",
+            "X-Pusher-Key": "KEY",
+            "X-Pusher-Signature": signature
+        })
+        self.assertEqual(200, response.status_code)
+        self.assertTrue(self._called)
+
 if __name__ == '__main__':
     unittest.main()

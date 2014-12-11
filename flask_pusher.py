@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+
 from flask import Blueprint, current_app, request, jsonify, abort
 
 import pusher as _pusher
@@ -9,6 +12,8 @@ class Pusher(object):
         self.app = app
         self._auth_handler = None
         self._channel_data_handler = None
+        self._blueprint = Blueprint('pusher', __name__, url_prefix="/pusher")
+        self.webhooks = Webhooks(self)
 
         if app is not None:
             self.init_app(app)
@@ -29,8 +34,8 @@ class Pusher(object):
             port=app.config["PUSHER_PORT"],
             encoder=getattr(app, "json_encoder", None))
 
-        bp = self._make_blueprint()
-        app.register_blueprint(bp)
+        self._make_blueprint()
+        app.register_blueprint(self._blueprint)
 
         if not hasattr(app, "extensions"):
             app.extensions = {}
@@ -49,9 +54,9 @@ class Pusher(object):
         return handler
 
     def _make_blueprint(self):
-        bp = Blueprint('pusher', __name__)
+        bp = self._blueprint
 
-        @bp.route("/pusher/auth", methods=["POST"])
+        @bp.route("/auth", methods=["POST"])
         def auth():
             if not self._auth_handler:
                 abort(403)
@@ -82,4 +87,58 @@ class Pusher(object):
                 "PUSHER_KEY": self.client.key
             }
 
-        return bp
+    def _sign(self, message):
+        return hmac.new(self.client.secret, message,
+                        hashlib.sha256).hexdigest()
+
+
+class Webhooks(object):
+
+    CHANNEL_EXISTENCE_EVENT = "channel_existence"
+    PRESENCE_EVENT = "presence"
+    CLIENT_EVENT = "client"
+
+    def __init__(self, pusher):
+        self.pusher = pusher
+        self._handlers = {}
+        self._register(self.CHANNEL_EXISTENCE_EVENT)
+        self._register(self.PRESENCE_EVENT)
+        self._register(self.CLIENT_EVENT)
+
+    def channel_existence(self, func):
+        self._handlers[self.CHANNEL_EXISTENCE_EVENT] = func
+        return func
+
+    def presence(self, func):
+        self._handlers[self.PRESENCE_EVENT] = func
+        return func
+
+    def client(self, func):
+        self._handlers[self.CLIENT_EVENT] = func
+        return func
+
+    def _register(self, event):
+        def route():
+            func = self._handlers.get(event)
+            if not func:
+                abort(404)
+            self._validate()
+            func()
+            return "OK", 200
+
+        rule = "/events/%s" % event
+        name = "%s_event" % event
+        self.pusher._blueprint.add_url_rule(rule, name, route,
+                                            methods=["POST"])
+
+    def _validate(self):
+        pusher_key = request.headers.get("X-Pusher-Key")
+        if pusher_key != self.pusher.client.key:
+            # invalid pusher key
+            abort(403)
+
+        webhook_signature = request.headers.get("X-Pusher-Signature")
+        expected_signature = self.pusher._sign(request.data)
+        if webhook_signature != expected_signature:
+            # invalid signature
+            abort(403)
