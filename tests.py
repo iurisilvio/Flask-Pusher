@@ -163,13 +163,15 @@ class PusherWebhookTest(unittest.TestCase):
         self.app.debug = True
         self.app.config["PUSHER_KEY"] = "KEY"
         self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
-        self.pusher = Pusher(self.app)
+        self.pusher = Pusher()
         self.client = self.app.test_client()
         self._called = False
 
         @self.pusher.webhooks.client
         def c():
             self._called = True
+
+        self.pusher.init_app(self.app)
 
     def test_no_webhook(self):
         with self.app.test_request_context():
@@ -228,6 +230,16 @@ class PusherWebhookTest(unittest.TestCase):
         })
         self.assertEqual(200, response.status_code)
         self.assertTrue(self._called)
+
+    def test_hook_all_handlers(self):
+        @self.pusher.webhooks.presence
+        def h1():
+            pass
+
+        @self.pusher.webhooks.channel_existence
+        def h2():
+            pass
+
 
 if __name__ == '__main__':
     unittest.main()
