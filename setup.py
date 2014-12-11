@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Pusher',
-    version='0.3dev',
+    version='0.3',
     url='https://www.github.com/iurisilvio/Flask-Pusher',
     license='MIT',
     author='Iuri de Silvio',
