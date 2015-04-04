@@ -157,6 +157,61 @@ class PusherAuthTest(unittest.TestCase):
         self.assertEqual(404, response.status_code)
 
 
+class PusherBatchAuthTest(unittest.TestCase):
+
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.debug = True
+        self.app.config["PUSHER_KEY"] = "KEY"
+        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
+        self.pusher = Pusher(self.app)
+        self.client = self.app.test_client()
+
+    def test_one_channel(self):
+        self.pusher.auth(lambda c, s: True)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name[0]": "private-a",
+                                          "socket_id": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.data)
+        self.assertEqual(1, len(data))
+
+        data_a = data.get("private-a")
+        self.assertEqual(200, data_a["status"])
+        self.assertTrue(data_a["data"])
+
+    def test_more_channels(self):
+        self.pusher.auth(lambda c, s: "b" not in c)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name[0]": "private-a",
+                                          "channel_name[1]": "private-b",
+                                          "channel_name[2]": "presence-c",
+                                          "socket_id": "1"})
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.data)
+        self.assertEqual(3, len(data))
+
+        a = data.get("private-a")
+        self.assertEqual(200, a["status"])
+        self.assertIn("auth", a["data"])
+
+        b = data.get("private-b")
+        self.assertEqual(403, b["status"])
+
+        c = data.get("presence-c")
+        self.assertEqual(200, c["status"])
+        c_data = c["data"]
+        self.assertIn("auth", c_data)
+        self.assertIn("channel_data", c_data)
+
+    def test_missing_channel(self):
+        self.pusher.auth(lambda c, s: True)
+        response = self.client.post("/pusher/auth",
+                                    data={"channel_name[1]": "private-b",
+                                          "socket_id": "1"})
+        self.assertEqual(400, response.status_code)
+
+
 class PusherWebhookTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)

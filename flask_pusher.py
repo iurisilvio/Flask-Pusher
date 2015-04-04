@@ -66,25 +66,15 @@ class Pusher(object):
             if not self._auth_handler:
                 abort(403)
 
-            channel_name = request.form["channel_name"]
             socket_id = request.form["socket_id"]
-
-            if not self._auth_handler(channel_name, socket_id):
-                abort(403)
-
-            channel = self.client[channel_name]
-            if channel_name.startswith("presence-"):
-                channel_data = {"user_id": socket_id}
-                if self._channel_data_handler:
-                    d = self._channel_data_handler(channel_name, socket_id)
-                    channel_data.update(d)
-                auth = channel.authenticate(socket_id, channel_data)
-            elif channel_name.startswith("private-"):
-                auth = channel.authenticate(socket_id)
+            channel_name = request.form.get("channel_name")
+            if channel_name:
+                response = self._auth_simple(socket_id, channel_name)
+                if not response:
+                    abort(403)
             else:
-                # must never happen, this request is not from pusher
-                abort(404)
-            return jsonify(auth)
+                response = self._auth_buffered(socket_id)
+            return jsonify(response)
 
         @bp.app_context_processor
         def pusher_data():
@@ -95,6 +85,45 @@ class Pusher(object):
     def _sign(self, message):
         return hmac.new(self.client.secret, message,
                         hashlib.sha256).hexdigest()
+
+    def _auth_simple(self, socket_id, channel_name):
+        if not self._auth_handler(channel_name, socket_id):
+            return None
+        return self._auth_key(socket_id, channel_name)
+
+    def _auth_buffered(self, socket_id):
+        response = {}
+        while True:
+            n = len(response)
+            channel_name = request.form.get("channel_name[%d]" % n)
+            if not channel_name:
+                if n == 0:
+                    # it is not a buffered request
+                    abort(400)
+                break
+            r = {}
+            auth = self._auth_simple(socket_id, channel_name)
+            if auth:
+                r.update(status=200, data=auth)
+            else:
+                r.update(status=403)
+            response[channel_name] = r
+        return response
+
+    def _auth_key(self, socket_id, channel_name):
+        channel = self.client[channel_name]
+        if channel_name.startswith("presence-"):
+            channel_data = {"user_id": socket_id}
+            if self._channel_data_handler:
+                d = self._channel_data_handler(channel_name, socket_id)
+                channel_data.update(d)
+            auth = channel.authenticate(socket_id, channel_data)
+        elif channel_name.startswith("private-"):
+            auth = channel.authenticate(socket_id)
+        else:
+            # must never happen, this request is not from pusher
+            abort(404)
+        return auth
 
 
 class Webhooks(object):
