@@ -1,5 +1,9 @@
 Changelog
 =========
+0.4
+ * Batch auth support
+ * Configurable url prefix and authentication path
+
 0.3
  * Webhooks support
  * JSONP authentication support with Flask-Jsonpify

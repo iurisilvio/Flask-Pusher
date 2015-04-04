@@ -79,7 +79,7 @@ just decorate a function with `@pusher.auth`.
 
 This function must return `True` for authorized and `False` for unauthorized
 users. It happens in the request context, so you have all `Flask` features,
-including for exemple the `Flask-Login` current user.
+including for example the `Flask-Login` current user.
 
 Set the `PUSHER_AUTH` configuration to change the auth endpoint. The default value is `/auth`.
 
@@ -95,7 +95,10 @@ def pusher_auth(channel_name, socket_id):
     return current_user.is_authenticated()
 ```
 
+It also transparently supports batch auth, based on `pusher-js-auth`: https://github.com/dirkbonhomme/pusher-js-auth`. The authentication function is called for each channel in the batch.
+
 Read more about user authentication here: http://pusher.com/docs/authenticating_users
+
 
 Pusher channel data
 -------------------
