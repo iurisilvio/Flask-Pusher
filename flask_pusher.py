@@ -12,11 +12,11 @@ import pusher as _pusher
 
 class Pusher(object):
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, url_prefix="/pusher"):
         self.app = app
         self._auth_handler = None
         self._channel_data_handler = None
-        self._blueprint = Blueprint('pusher', __name__, url_prefix="/pusher")
+        self._blueprint = Blueprint('pusher', __name__, url_prefix=url_prefix)
         self.webhooks = Webhooks(self)
 
         if app is not None:
@@ -29,6 +29,7 @@ class Pusher(object):
         app.config.setdefault("PUSHER_SECRET", '')
         app.config.setdefault("PUSHER_HOST", '')
         app.config.setdefault("PUSHER_PORT", '')
+        app.config.setdefault("PUSHER_AUTH", '/auth')
 
         client = _pusher.Pusher(
             app_id=app.config["PUSHER_APP_ID"],
@@ -38,7 +39,7 @@ class Pusher(object):
             port=app.config["PUSHER_PORT"],
             encoder=getattr(app, "json_encoder", None))
 
-        self._make_blueprint()
+        self._make_blueprint(app.config["PUSHER_AUTH"])
         app.register_blueprint(self._blueprint)
 
         if not hasattr(app, "extensions"):
@@ -57,10 +58,10 @@ class Pusher(object):
         self._channel_data_handler = handler
         return handler
 
-    def _make_blueprint(self):
+    def _make_blueprint(self, auth_path):
         bp = self._blueprint
 
-        @bp.route("/auth", methods=["POST"])
+        @bp.route(auth_path, methods=["POST"])
         def auth():
             if not self._auth_handler:
                 abort(403)

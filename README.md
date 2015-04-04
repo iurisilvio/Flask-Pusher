@@ -47,6 +47,7 @@ from flask.ext.pusher import Pusher
 
 app = Flask(__name__)
 pusher = Pusher(app)
+# Use pusher = Pusher(app, url_prefix="/yourpath") to mount the plugin in another path
 ```
 
 The extension gives you two ways to access the pusher client:
@@ -79,6 +80,8 @@ just decorate a function with `@pusher.auth`.
 This function must return `True` for authorized and `False` for unauthorized
 users. It happens in the request context, so you have all `Flask` features,
 including for exemple the `Flask-Login` current user.
+
+Set the `PUSHER_AUTH` configuration to change the auth endpoint. The default value is `/auth`.
 
 ```python
 from flask.ext.login import current_user
