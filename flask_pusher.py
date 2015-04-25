@@ -9,6 +9,15 @@ except ImportError:
 
 import pusher as _pusher
 
+try:
+    from pusher.signature import sign, verify
+except ImportError:
+    def sign(key, message):
+        return hmac.new(key, message, hashlib.sha256).hexdigest()
+
+    def verify(key, message, signature):
+        return sign(key, message) == signature
+
 
 class Pusher(object):
 
@@ -83,8 +92,12 @@ class Pusher(object):
             }
 
     def _sign(self, message):
-        key = self.client.secret.encode("utf-8")
-        return hmac.new(key, message, hashlib.sha256).hexdigest()
+        return sign(self.client.secret, message)
+
+    def _verify(self, message, signature):
+        if not signature:
+            return False
+        return verify(self.client.secret, message, signature)
 
     def _auth_simple(self, socket_id, channel_name):
         if not self._auth_handler(channel_name, socket_id):
@@ -181,7 +194,6 @@ class Webhooks(object):
             abort(403)
 
         webhook_signature = request.headers.get("X-Pusher-Signature")
-        expected_signature = self.pusher._sign(request.data)
-        if webhook_signature != expected_signature:
+        if not self.pusher._verify(request.data.decode(), webhook_signature):
             # invalid signature
             abort(403)

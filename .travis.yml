@@ -17,6 +17,7 @@ env:
 matrix:
   include:
     - python: 3.4
+    - env: FLASK="==0.10.1"
 
 install:
   - pip install -q Flask$FLASK pusher$PUSHER
