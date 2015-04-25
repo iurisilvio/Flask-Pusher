@@ -5,11 +5,14 @@ except ImportError:
 from decimal import Decimal
 
 from flask import Flask, json, render_template_string, url_for
-import pusher as _pusher
 from flask.ext.pusher import Pusher
 
-# pusher client global app_id
-_pusher.app_id = "1234"
+
+pusher_conf = {
+    "PUSHER_APP_ID": "1234",
+    "PUSHER_KEY": "KEY",
+    "PUSHER_SECRET": "SUPERSECRET",
+}
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -24,6 +27,7 @@ class PusherClientTest(unittest.TestCase):
 
     def setUp(self):
         self.app = Flask(__name__)
+        self.app.config.update(pusher_conf)
 
     def test_default_config(self):
         # fallback to Pusher globals still works
@@ -43,14 +47,6 @@ class PusherClientTest(unittest.TestCase):
         with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
 
-    def test_set_app_id(self):
-        app_id = "4321"
-        self.app.config["PUSHER_APP_ID"] = app_id
-        pusher = Pusher(self.app)
-        with self.app.test_request_context():
-            self.assertIsNotNone(pusher.client)
-            self.assertEqual(app_id, pusher.client.app_id)
-
     def test_json_encoder(self):
         self.app.json_encoder = CustomJSONEncoder
         pusher = Pusher(self.app)
@@ -59,8 +55,6 @@ class PusherClientTest(unittest.TestCase):
             self.assertEqual(CustomJSONEncoder, pusher.client.encoder)
 
     def test_configuration(self):
-        self.app.config["PUSHER_KEY"] = "KEY"
-        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
         self.app.config["PUSHER_HOST"] = "example.com"
         self.app.config["PUSHER_PORT"] = 8080
         pusher = Pusher(self.app)
@@ -72,7 +66,6 @@ class PusherClientTest(unittest.TestCase):
             self.assertEqual(8080, pusher.client.port)
 
     def test_pusher_key_in_template(self):
-        self.app.config["PUSHER_KEY"] = "KEY"
         Pusher(self.app)
         with self.app.test_request_context():
             rendered = render_template_string("{{ PUSHER_KEY }}")
@@ -84,8 +77,7 @@ class PusherAuthTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.debug = True
-        self.app.config["PUSHER_KEY"] = "KEY"
-        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
+        self.app.config.update(pusher_conf)
         self.pusher = Pusher(self.app)
         self.client = self.app.test_client()
 
@@ -162,8 +154,7 @@ class PusherBatchAuthTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.debug = True
-        self.app.config["PUSHER_KEY"] = "KEY"
-        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
+        self.app.config.update(pusher_conf)
         self.pusher = Pusher(self.app)
         self.client = self.app.test_client()
 
@@ -216,8 +207,7 @@ class PusherWebhookTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.debug = True
-        self.app.config["PUSHER_KEY"] = "KEY"
-        self.app.config["PUSHER_SECRET"] = "SUPERSECRET"
+        self.app.config.update(pusher_conf)
         self.pusher = Pusher()
         self.client = self.app.test_client()
         self._called = False
