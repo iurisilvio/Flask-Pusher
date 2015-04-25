@@ -1,5 +1,8 @@
 Changelog
 =========
+0.4.1
+ * Fix dependency version: pusher<1.0
+
 0.4
  * Batch auth support
  * Configurable url prefix and authentication path
