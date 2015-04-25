@@ -52,6 +52,9 @@ class PusherClientTest(unittest.TestCase):
         pusher = Pusher(self.app)
 
         with self.app.test_request_context():
+            if not hasattr(pusher.client, "encoder"):
+                msg = u"JSON encoder override is not supported on pusher>=1.0"
+                self.skipTest(msg)
             self.assertEqual(CustomJSONEncoder, pusher.client.encoder)
 
     def test_configuration(self):
