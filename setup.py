@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Pusher',
-    version='0.4.1',
+    version='1.0',
     url='https://www.github.com/iurisilvio/Flask-Pusher',
     license='MIT',
     author='Iuri de Silvio',
@@ -13,7 +13,7 @@ setup(
     platforms='any',
     install_requires=[
         'Flask',
-        'pusher<1.0',
+        'pusher<2.0',
         'Flask-Jsonpify',  # for jsonp auth support
     ],
     test_suite="tests",
