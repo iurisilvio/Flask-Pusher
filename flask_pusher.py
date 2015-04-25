@@ -111,18 +111,27 @@ class Pusher(object):
         return response
 
     def _auth_key(self, socket_id, channel_name):
-        channel = self.client[channel_name]
         if channel_name.startswith("presence-"):
             channel_data = {"user_id": socket_id}
             if self._channel_data_handler:
                 d = self._channel_data_handler(channel_name, socket_id)
                 channel_data.update(d)
-            auth = channel.authenticate(socket_id, channel_data)
+            auth_args = [socket_id, channel_data]
         elif channel_name.startswith("private-"):
-            auth = channel.authenticate(socket_id)
+            auth_args = [socket_id]
         else:
             # must never happen, this request is not from pusher
             abort(404)
+
+        try:
+            channel = self.client[channel_name]
+        except TypeError:
+            # pusher>=1.0
+            auth = self.client.authenticate(channel_name, *auth_args)
+        else:
+            # pusher<1.0
+            auth = channel.authenticate(*auth_args)
+
         return auth
 
 
