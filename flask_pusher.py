@@ -83,8 +83,8 @@ class Pusher(object):
             }
 
     def _sign(self, message):
-        return hmac.new(self.client.secret, message,
-                        hashlib.sha256).hexdigest()
+        key = self.client.secret.encode("utf-8")
+        return hmac.new(key, message, hashlib.sha256).hexdigest()
 
     def _auth_simple(self, socket_id, channel_name):
         if not self._auth_handler(channel_name, socket_id):
