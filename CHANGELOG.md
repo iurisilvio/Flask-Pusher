@@ -1,7 +1,14 @@
 Changelog
 =========
+1.0.1
+ * Monkey patch `pusher.json` module to use `flask.json`
+
+1.0
+ * `pusher>=1.0` support
+ * Custom `JSONEncoder` does not work with `pusher==1.0`
+
 0.4.1
- * Fix dependency version: pusher<1.0
+ * Fix dependency version: `pusher<1.0`
 
 0.4
  * Batch auth support
