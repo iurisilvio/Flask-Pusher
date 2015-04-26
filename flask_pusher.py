@@ -1,7 +1,7 @@
 import hashlib
 import hmac
 
-from flask import Blueprint, current_app, request, abort
+from flask import Blueprint, current_app, request, abort, json
 try:
     from flask.ext.jsonpify import jsonify
 except ImportError:
@@ -11,7 +11,14 @@ import pusher as _pusher
 
 try:
     from pusher.signature import sign, verify
+    __v1__ = True
+
+    # monkey patch pusher json module because they don't have
+    # any option to define my own json encoder
+    _pusher.pusher.json = json
 except ImportError:
+    __v1__ = False
+
     def sign(key, message):
         return hmac.new(key, message, hashlib.sha256).hexdigest()
 
@@ -40,13 +47,17 @@ class Pusher(object):
         app.config.setdefault("PUSHER_PORT", '')
         app.config.setdefault("PUSHER_AUTH", '/auth')
 
-        client = _pusher.Pusher(
+        pusher_kwargs = dict(
             app_id=app.config["PUSHER_APP_ID"],
             key=app.config["PUSHER_KEY"],
             secret=app.config["PUSHER_SECRET"],
             host=app.config["PUSHER_HOST"],
             port=app.config["PUSHER_PORT"],
-            encoder=getattr(app, "json_encoder", None))
+        )
+        if not __v1__:
+            pusher_kwargs["encoder"] = getattr(app, "json_encoder", None)
+
+        client = _pusher.Pusher(**pusher_kwargs)
 
         self._make_blueprint(app.config["PUSHER_AUTH"])
         app.register_blueprint(self._blueprint)
