@@ -7,6 +7,7 @@ setup(
     license='MIT',
     author='Iuri de Silvio',
     author_email='iurisilvio@gmail.com',
+    description='Flask extension for Pusher',
     py_modules=['flask_pusher'],
     zip_safe=False,
     include_package_data=True,
