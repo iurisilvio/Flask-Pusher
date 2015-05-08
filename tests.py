@@ -14,6 +14,8 @@ pusher_conf = {
     "PUSHER_SECRET": "SUPERSECRET",
 }
 
+SOCKET_ID = "1.42"
+
 
 class CustomJSONEncoder(json.JSONEncoder):
 
@@ -97,14 +99,14 @@ class PusherAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: False)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "private-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(403, response.status_code)
 
     def test_auth_accepted(self):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "private-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertIn("auth", data)
@@ -114,7 +116,7 @@ class PusherAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "private-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertIn("auth", data)
@@ -124,7 +126,7 @@ class PusherAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "presence-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertIn("auth", data)
@@ -136,7 +138,7 @@ class PusherAuthTest(unittest.TestCase):
         self.pusher.channel_data(lambda c, s: {"foo": "bar"})
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "presence-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertIn("auth", data)
@@ -148,7 +150,7 @@ class PusherAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name": "foo",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(404, response.status_code)
 
 
@@ -165,7 +167,7 @@ class PusherBatchAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name[0]": "private-a",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertEqual(1, len(data))
@@ -180,7 +182,7 @@ class PusherBatchAuthTest(unittest.TestCase):
                                     data={"channel_name[0]": "private-a",
                                           "channel_name[1]": "private-b",
                                           "channel_name[2]": "presence-c",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(200, response.status_code)
         data = json.loads(response.data)
         self.assertEqual(3, len(data))
@@ -202,7 +204,7 @@ class PusherBatchAuthTest(unittest.TestCase):
         self.pusher.auth(lambda c, s: True)
         response = self.client.post("/pusher/auth",
                                     data={"channel_name[1]": "private-b",
-                                          "socket_id": "1"})
+                                          "socket_id": SOCKET_ID})
         self.assertEqual(400, response.status_code)
 
 
