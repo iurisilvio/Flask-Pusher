@@ -63,7 +63,7 @@ client = pusher.client
 In both cases, it is a reference to the pusher client.
 
 ```
-client[channel_name].trigger('event', {
+client.trigger('channel_name', 'event', {
     'message': msg,
 })
 ```
