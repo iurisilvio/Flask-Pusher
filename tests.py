@@ -131,7 +131,7 @@ class PusherAuthTest(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn("auth", data)
         channel_data = json.loads(data["channel_data"])
-        self.assertEqual({"user_id": "1"}, channel_data)
+        self.assertEqual({"user_id": SOCKET_ID}, channel_data)
 
     def test_channel_data_in_presence_channel(self):
         self.pusher.auth(lambda c, s: True)
@@ -143,7 +143,7 @@ class PusherAuthTest(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn("auth", data)
         channel_data = json.loads(data["channel_data"])
-        self.assertEqual("1", channel_data["user_id"])
+        self.assertEqual(SOCKET_ID, channel_data["user_id"])
         self.assertIn("bar", channel_data["foo"])
 
     def test_invalid_channel(self):
