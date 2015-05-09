@@ -4,8 +4,9 @@ except ImportError:
     import unittest
 from decimal import Decimal
 
+import pusher as _pusher
 from flask import Flask, json, render_template_string, url_for
-from flask.ext.pusher import Pusher
+from flask.ext.pusher import Pusher, _json_encoder_support, __v1__
 
 
 pusher_conf = {
@@ -50,14 +51,25 @@ class PusherClientTest(unittest.TestCase):
             self.assertIsNotNone(pusher.client)
 
     def test_json_encoder(self):
+        if not _json_encoder_support:
+            msg = u"JSON encoder override is not supported on pusher>=1.0,<1.1"
+            self.skipTest(msg)
+
         self.app.json_encoder = CustomJSONEncoder
         pusher = Pusher(self.app)
 
         with self.app.test_request_context():
-            if not hasattr(pusher.client, "encoder"):
-                msg = u"JSON encoder override is not supported on pusher>=1.0"
-                self.skipTest(msg)
-            self.assertEqual(CustomJSONEncoder, pusher.client.encoder)
+            if __v1__:
+                enc = pusher.client._json_encoder
+            else:
+                enc = pusher.client.encoder
+        self.assertEqual(CustomJSONEncoder, enc)
+
+    def test_flask_json_patch(self):
+        if _json_encoder_support:
+            msg = u"Only pusher>=1.0,<1.1 is monkey patched"
+            self.skipTest(msg)
+        self.assertEqual(json, _pusher.pusher.json)
 
     def test_configuration(self):
         self.app.config["PUSHER_HOST"] = "example.com"

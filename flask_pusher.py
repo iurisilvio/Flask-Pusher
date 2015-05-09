@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import inspect
 
 from flask import Blueprint, current_app, request, abort, json
 try:
@@ -13,10 +14,16 @@ try:
     from pusher.signature import sign, verify
     __v1__ = True
 
-    # monkey patch pusher json module because they don't have
-    # any option to define my own json encoder
-    _pusher.pusher.json = json
+    argspec = inspect.getargspec(_pusher.Pusher.__init__)
+    if "json_encoder" in argspec.args:
+        _json_encoder_support = True
+    else:
+        _json_encoder_support = False
+        # monkey patch pusher json module because they don't have
+        # any option to define my own json encoder
+        _pusher.pusher.json = json
 except ImportError:
+    _json_encoder_support = True
     __v1__ = False
 
     def sign(key, message):
@@ -54,7 +61,12 @@ class Pusher(object):
             host=app.config["PUSHER_HOST"],
             port=app.config["PUSHER_PORT"],
         )
-        if not __v1__:
+
+        if __v1__:
+            if _json_encoder_support:
+                pusher_kwargs["json_encoder"] = getattr(app, "json_encoder", None)
+                pusher_kwargs["json_decoder"] = getattr(app, "json_decoder", None)
+        else:
             pusher_kwargs["encoder"] = getattr(app, "json_encoder", None)
 
         client = _pusher.Pusher(**pusher_kwargs)
