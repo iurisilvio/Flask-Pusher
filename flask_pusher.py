@@ -53,6 +53,7 @@ class Pusher(object):
         app.config.setdefault("PUSHER_HOST", '')
         app.config.setdefault("PUSHER_PORT", '')
         app.config.setdefault("PUSHER_AUTH", '/auth')
+        app.config.setdefault("PUSHER_SSL", False)
 
         pusher_kwargs = dict(
             app_id=app.config["PUSHER_APP_ID"],
@@ -60,6 +61,7 @@ class Pusher(object):
             secret=app.config["PUSHER_SECRET"],
             host=app.config["PUSHER_HOST"],
             port=app.config["PUSHER_PORT"],
+            ssl=app.config["PUSHER_SSL"],
         )
 
         if __v1__:
