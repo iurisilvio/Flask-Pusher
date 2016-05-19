@@ -1,5 +1,9 @@
 Changelog
 =========
+1.1
+ * Support `pusher` 1.2+
+ * Support `PUSHER_SSL` configuration
+
 1.0.1
  * Monkey patch `pusher.json` module to use `flask.json`
 

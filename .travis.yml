@@ -12,6 +12,7 @@ env:
   - FLASK="==0.9"
   - FLASK="==0.10.1" PUSHER="pusher<1.0"
   - FLASK="==0.10.1" PUSHER="pusher>=1.0,<1.1"
+  - FLASK="==0.10.1" PUSHER="pusher>=1.1,<1.2"
   - FLASK="==0.10.1"
   - FLASK="==0.10.1" PUSHER="git+https://github.com/pusher/pusher-http-python.git"
 
