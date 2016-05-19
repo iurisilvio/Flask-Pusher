@@ -53,6 +53,7 @@ class Pusher(object):
         app.config.setdefault("PUSHER_HOST", '')
         app.config.setdefault("PUSHER_PORT", '')
         app.config.setdefault("PUSHER_AUTH", '/auth')
+        app.config.setdefault("PUSHER_SSL", False)
 
         pusher_kwargs = dict(
             app_id=app.config["PUSHER_APP_ID"],
@@ -63,6 +64,7 @@ class Pusher(object):
         )
 
         if __v1__:
+            pusher_kwargs["ssl"] = app.config["PUSHER_SSL"]
             if _json_encoder_support:
                 pusher_kwargs["json_encoder"] = getattr(app, "json_encoder", None)
                 pusher_kwargs["json_decoder"] = getattr(app, "json_decoder", None)
