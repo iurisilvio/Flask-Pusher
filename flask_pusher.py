@@ -61,10 +61,10 @@ class Pusher(object):
             secret=app.config["PUSHER_SECRET"],
             host=app.config["PUSHER_HOST"],
             port=app.config["PUSHER_PORT"],
-            ssl=app.config["PUSHER_SSL"],
         )
 
         if __v1__:
+            pusher_kwargs["ssl"] = app.config["PUSHER_SSL"]
             if _json_encoder_support:
                 pusher_kwargs["json_encoder"] = getattr(app, "json_encoder", None)
                 pusher_kwargs["json_decoder"] = getattr(app, "json_decoder", None)
