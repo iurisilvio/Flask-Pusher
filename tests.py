@@ -6,7 +6,7 @@ from decimal import Decimal
 
 import pusher as _pusher
 from flask import Flask, json, render_template_string, url_for
-from flask.ext.pusher import Pusher, _json_encoder_support, __v1__
+from flask_pusher import Pusher, _json_encoder_support, __v1__
 
 
 pusher_conf = {

@@ -43,7 +43,7 @@ This extension simplify Pusher configuration and bind the client to your app.
 
 ```python
 from flask import Flask
-from flask.ext.pusher import Pusher
+from flask_pusher import Pusher
 
 app = Flask(__name__)
 pusher = Pusher(app)
@@ -84,7 +84,7 @@ including for example the `Flask-Login` current user.
 Set the `PUSHER_AUTH` configuration to change the auth endpoint. The default value is `/auth`.
 
 ```python
-from flask.ext.login import current_user
+from flask_login import current_user
 
 @pusher.auth
 def pusher_auth(channel_name, socket_id):
@@ -110,7 +110,7 @@ The `@pusher.channel_data` gives you a way to set other values. If a `user_id`
 key is returned, it overrides the default `user_id`.
 
 ```python
-from flask.ext.login import current_user
+from flask_login import current_user
 
 @pusher.channel_data
 def pusher_channel_data(channel_name, socket_id):
