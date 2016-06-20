@@ -1,5 +1,8 @@
 Changelog
 =========
+1.1.1
+ * Remove deprecated `flask.ext.*` calls
+
 1.1
  * Support `pusher` 1.2+
  * Support `PUSHER_SSL` configuration

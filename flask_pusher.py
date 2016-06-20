@@ -4,7 +4,7 @@ import inspect
 
 from flask import Blueprint, current_app, request, abort, json
 try:
-    from flask.ext.jsonpify import jsonify
+    from flask_jsonpify import jsonify
 except ImportError:
     from flask import jsonify
 
