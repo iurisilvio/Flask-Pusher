@@ -1,5 +1,8 @@
 Changelog
 =========
+1.2
+ * Support `pusher<2.0`
+
 1.1.1
  * Remove deprecated `flask.ext.*` calls
 
