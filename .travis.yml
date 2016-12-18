@@ -45,7 +45,7 @@ matrix:
       env: FLASK="==0.11"
 
 install:
-  - pip install -q Flask$FLASK $PUSHER
+  - pip install Flask$FLASK $PUSHER
   - pip install unittest2 coverage coveralls
   - python setup.py install
 

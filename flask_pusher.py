@@ -33,6 +33,23 @@ except ImportError:
         return sign(key, message) == signature
 
 
+class _Pusher(_pusher.Pusher):
+    """
+    Pusher client wrapper to get attributes from `_pusher_client`
+    if the attribute does not exist.
+
+    Provide backward compatibility to `pusher>=1.6`.
+    """
+    def __getattr__(self, attr):
+        try:
+            client = self._pusher_client
+        except AttributeError:
+            # call super to raise the original exception
+            return super(_Pusher, self).__getattr__(attr)
+        else:
+            return getattr(client, attr)
+
+
 class Pusher(object):
 
     def __init__(self, app=None, url_prefix="/pusher"):
@@ -71,7 +88,7 @@ class Pusher(object):
         else:
             pusher_kwargs["encoder"] = getattr(app, "json_encoder", None)
 
-        client = _pusher.Pusher(**pusher_kwargs)
+        client = _Pusher(**pusher_kwargs)
 
         self._make_blueprint(app.config["PUSHER_AUTH"])
         app.register_blueprint(self._blueprint)
