@@ -18,6 +18,10 @@ setup(
         'Flask-Jsonpify',  # for jsonp auth support
     ],
     test_suite="tests",
+    tests_require=[
+        'mock',
+        'unittest2',
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',

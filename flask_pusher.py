@@ -12,19 +12,13 @@ import pusher as _pusher
 
 try:
     from pusher.signature import sign, verify
-    __v1__ = True
 
     argspec = inspect.getargspec(_pusher.Pusher.__init__)
-    if "json_encoder" in argspec.args:
-        _json_encoder_support = True
-    else:
-        _json_encoder_support = False
+    if "json_encoder" not in argspec.args:
         # monkey patch pusher json module because they don't have
         # any option to define my own json encoder
         _pusher.pusher.json = json
 except ImportError:
-    _json_encoder_support = True
-    __v1__ = False
 
     def sign(key, message):
         return hmac.new(key, message, hashlib.sha256).hexdigest()
@@ -70,7 +64,6 @@ class Pusher(object):
         app.config.setdefault("PUSHER_HOST", '')
         app.config.setdefault("PUSHER_PORT", '')
         app.config.setdefault("PUSHER_AUTH", '/auth')
-        app.config.setdefault("PUSHER_SSL", False)
 
         pusher_kwargs = dict(
             app_id=app.config["PUSHER_APP_ID"],
@@ -80,13 +73,57 @@ class Pusher(object):
             port=app.config["PUSHER_PORT"],
         )
 
-        if __v1__:
-            pusher_kwargs["ssl"] = app.config["PUSHER_SSL"]
-            if _json_encoder_support:
-                pusher_kwargs["json_encoder"] = getattr(app, "json_encoder", None)
-                pusher_kwargs["json_decoder"] = getattr(app, "json_decoder", None)
+        ssl = app.config.get('PUSHER_SSL')
+        if ssl is not None:
+            pusher_kwargs["ssl"] = ssl
+
+        timeout = app.config.get('PUSHER_TIMEOUT')
+        if timeout is not None:
+            pusher_kwargs["timeout"] = timeout
+
+        cluster = app.config.get('PUSHER_CLUSTER')
+        if cluster is not None:
+            pusher_kwargs["cluster"] = cluster
+
+        backend = app.config.get('PUSHER_BACKEND')
+        if backend is not None:
+            pusher_kwargs["backend"] = backend
+
+        notification_host = app.config.get('PUSHER_NOTIFICATION_HOST')
+        if notification_host is not None:
+            pusher_kwargs["notification_host"] = notification_host
+
+        notification_ssl = app.config.get('PUSHER_NOTIFICATION_SSL')
+        if notification_ssl is not None:
+            pusher_kwargs["notification_ssl"] = notification_ssl
+
+        argspec = inspect.getargspec(_pusher.Pusher.__init__)
+        expected_args = set(argspec.args)
+        ignored_args = []
+        for key, value in pusher_kwargs.items():
+            if key not in expected_args:
+                ignored_args.append(key)
+                del pusher_kwargs[key]
+
+        if ignored_args:
+            message = u"Flask-Pusher ignored some incompatible args: %s"
+            app.logger.warning(message % ignored_args)
+
+        if "json_encoder" in argspec.args:
+            pusher_kwargs.update({
+                "json_encoder": getattr(app, "json_encoder", None),
+                "json_decoder": getattr(app, "json_decoder", None),
+            })
         else:
             pusher_kwargs["encoder"] = getattr(app, "json_encoder", None)
+
+        backend_options = app.config.get('PUSHER_BACKEND_OPTIONS')
+        if backend_options is not None:
+            if argspec.keywords:
+                pusher_kwargs.update(backend_options)
+            else:
+                message = u"Flask-Pusher ignored incompatible backend_options."
+                app.logger.warning(message)
 
         client = _Pusher(**pusher_kwargs)
 

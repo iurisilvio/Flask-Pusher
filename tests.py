@@ -3,11 +3,16 @@ try:
 except ImportError:
     import unittest
 from decimal import Decimal
+import inspect
+
+import mock
 
 import pusher as _pusher
 from flask import Flask, json, render_template_string, url_for
-from flask_pusher import Pusher, _json_encoder_support, __v1__
+from flask_pusher import Pusher
 
+argspec = inspect.getargspec(_pusher.Pusher.__init__)
+_json_encoder_support = "json_encoder" in argspec.args
 
 pusher_conf = {
     "PUSHER_APP_ID": "1234",
@@ -59,9 +64,9 @@ class PusherClientTest(unittest.TestCase):
         pusher = Pusher(self.app)
 
         with self.app.test_request_context():
-            if __v1__:
+            try:
                 enc = pusher.client._json_encoder
-            else:
+            except AttributeError:
                 enc = pusher.client.encoder
         self.assertEqual(CustomJSONEncoder, enc)
 
@@ -81,6 +86,27 @@ class PusherClientTest(unittest.TestCase):
             self.assertEqual("SUPERSECRET", pusher.client.secret)
             self.assertEqual("example.com", pusher.client.host)
             self.assertEqual(8080, pusher.client.port)
+
+    def test_all_configurations(self):
+        backend = mock.Mock()
+
+        self.app.config.update({
+            "PUSHER_SSL": False,
+            "PUSHER_TIMEOUT": 3,
+            "PUSHER_CLUSTER": "eu",
+            "PUSHER_BACKEND": backend,
+            "PUSHER_BACKEND_OPTIONS": {"anything": True},
+            "PUSHER_NOTIFICATION_HOST": "example.com",
+            "PUSHER_NOTIFICATION_SSL": True,
+        })
+        pusher = Pusher(self.app)
+        with self.app.test_request_context():
+            self.assertIsNotNone(pusher.client)
+            self.assertFalse(pusher.client.ssl)
+            self.assertEqual(3, pusher.client.timeout)
+            self.assertEqual("api-eu.pusher.com", pusher.client.host)
+            self.assertTrue(backend.called)
+            self.assertEqual({"anything": True}, backend.call_args[1])
 
     def test_pusher_key_in_template(self):
         Pusher(self.app)
