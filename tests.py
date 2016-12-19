@@ -74,7 +74,10 @@ class PusherClientTest(unittest.TestCase):
         if _json_encoder_support:
             msg = u"Only pusher>=1.0,<1.1 is monkey patched"
             self.skipTest(msg)
-        self.assertEqual(json, _pusher.pusher.json)
+        try:
+            self.assertEqual(json, _pusher.pusher.json)
+        except AttributeError:
+            self.assertEqual(json, _pusher.json)
 
     def test_configuration(self):
         self.app.config["PUSHER_HOST"] = "example.com"
@@ -102,11 +105,21 @@ class PusherClientTest(unittest.TestCase):
         pusher = Pusher(self.app)
         with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
-            self.assertFalse(pusher.client.ssl)
-            self.assertEqual(3, pusher.client.timeout)
-            self.assertEqual("api-eu.pusher.com", pusher.client.host)
-            self.assertTrue(backend.called)
-            self.assertEqual({"anything": True}, backend.call_args[1])
+
+            if "ssl" in argspec.args:
+                self.assertFalse(pusher.client.ssl)
+
+            if "timeout" in argspec.args:
+                self.assertEqual(3, pusher.client.timeout)
+
+            if "cluster" in argspec.args:
+                self.assertEqual("api-eu.pusher.com", pusher.client.host)
+
+            if "backend" in argspec.args:
+                self.assertTrue(backend.called)
+
+            if "backend_options" == argspec.keywords:
+                self.assertEqual({"anything": True}, backend.call_args[1])
 
     def test_pusher_key_in_template(self):
         Pusher(self.app)

@@ -19,6 +19,7 @@ try:
         # any option to define my own json encoder
         _pusher.pusher.json = json
 except ImportError:
+    _pusher.json = json
 
     def sign(key, message):
         return hmac.new(key, message, hashlib.sha256).hexdigest()
@@ -35,13 +36,12 @@ class _Pusher(_pusher.Pusher):
     Provide backward compatibility to `pusher>=1.6`.
     """
     def __getattr__(self, attr):
-        try:
+        if hasattr(self, "_pusher_client"):
             client = self._pusher_client
-        except AttributeError:
-            # call super to raise the original exception
-            return super(_Pusher, self).__getattr__(attr)
-        else:
             return getattr(client, attr)
+        else:
+            # call super to raise the original exception
+            return getattr(super(_Pusher, self), attr)
 
 
 class Pusher(object):
