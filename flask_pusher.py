@@ -119,7 +119,7 @@ class Pusher(object):
 
         backend_options = app.config.get('PUSHER_BACKEND_OPTIONS')
         if backend_options is not None:
-            if argspec.keywords:
+            if argspec.keywords == "backend_options":
                 pusher_kwargs.update(backend_options)
             else:
                 message = u"Flask-Pusher ignored incompatible backend_options."

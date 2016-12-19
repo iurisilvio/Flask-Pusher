@@ -72,7 +72,7 @@ class PusherClientTest(unittest.TestCase):
 
     def test_flask_json_patch(self):
         if _json_encoder_support:
-            msg = u"Only pusher>=1.0,<1.1 is monkey patched"
+            msg = u"Only pusher<1.1 is monkey patched"
             self.skipTest(msg)
         try:
             self.assertEqual(json, _pusher.pusher.json)
@@ -118,8 +118,8 @@ class PusherClientTest(unittest.TestCase):
             if "backend" in argspec.args:
                 self.assertTrue(backend.called)
 
-            if "backend_options" == argspec.keywords:
-                self.assertEqual({"anything": True}, backend.call_args[1])
+            if argspec.keywords == "backend_options":
+                self.assertTrue(backend.call_args[1]["anything"])
 
     def test_pusher_key_in_template(self):
         Pusher(self.app)
