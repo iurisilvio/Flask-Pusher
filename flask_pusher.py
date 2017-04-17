@@ -127,8 +127,11 @@ class Pusher(object):
 
         client = _Pusher(**pusher_kwargs)
 
-        self._make_blueprint(app.config["PUSHER_AUTH"])
-        app.register_blueprint(self._blueprint)
+        try:
+            self._make_blueprint(app.config["PUSHER_AUTH"])
+            app.register_blueprint(self._blueprint)
+        except AssertionError:
+            pass
 
         if not hasattr(app, "extensions"):
             app.extensions = {}
