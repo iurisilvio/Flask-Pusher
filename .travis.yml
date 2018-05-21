@@ -1,7 +1,6 @@
 language: python
 
 python:
-  - "2.6"
   - "2.7"
   - "pypy"
 
@@ -39,6 +38,10 @@ matrix:
       env: FLASK="==0.10.1"
     - python: 3.5
       env: FLASK="==0.11"
+    - python: 3.6
+      end: FLASK="==0.10.1"
+    - python: 3.6
+      env: FLASK="==0.11"
 
 install:
   - pip install Flask$FLASK $PUSHER
@@ -50,3 +53,4 @@ script:
 
 after_success:
   - coveralls
+
