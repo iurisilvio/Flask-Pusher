@@ -14,7 +14,7 @@ setup(
     platforms='any',
     install_requires=[
         'Flask',
-        'pusher<2.0',
+        'pusher',
         'Flask-Jsonpify',  # for jsonp auth support
     ],
     test_suite="tests",

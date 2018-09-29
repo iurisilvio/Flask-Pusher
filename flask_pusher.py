@@ -100,7 +100,7 @@ class Pusher(object):
         argspec = inspect.getargspec(_pusher.Pusher.__init__)
         expected_args = set(argspec.args)
         ignored_args = []
-        for key, value in pusher_kwargs.items():
+        for key in list(pusher_kwargs):
             if key not in expected_args:
                 ignored_args.append(key)
                 del pusher_kwargs[key]
