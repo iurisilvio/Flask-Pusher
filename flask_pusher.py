@@ -5,7 +5,7 @@ import inspect
 from flask import Blueprint, current_app, request, abort, json
 try:
     from flask_jsonpify import jsonify
-except ImportError:
+except ImportError:  # pragma: no cover
     from flask import jsonify
 
 import pusher as _pusher
