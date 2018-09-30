@@ -5,7 +5,7 @@ with open('README.md') as fh:
 
 setup(
     name='Flask-Pusher',
-    version='2.0.1',
+    version='2.0.2',
     url='https://www.github.com/iurisilvio/Flask-Pusher',
     license='MIT',
     author='Iuri de Silvio',

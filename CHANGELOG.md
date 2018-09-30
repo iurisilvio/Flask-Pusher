@@ -1,5 +1,8 @@
 Changelog
 =========
+2.0.2
+ * Package README, LICENSE and CHANGELOG
+
 2.0.1
  * Fix README
 
