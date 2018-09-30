@@ -1,5 +1,9 @@
 Changelog
 =========
+2.0
+ * Remove Python 2.6 and 3.3 support
+ * Support `pusher<3`
+
 1.2
  * Support `pusher<2.0`
 
