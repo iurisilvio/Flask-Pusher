@@ -1,13 +1,18 @@
 from setuptools import setup
 
+with open('README.md') as fh:
+    long_description = fh.read()
+
 setup(
     name='Flask-Pusher',
-    version='2.0',
+    version='2.0.1',
     url='https://www.github.com/iurisilvio/Flask-Pusher',
     license='MIT',
     author='Iuri de Silvio',
     author_email='iurisilvio@gmail.com',
     description='Flask extension for Pusher',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     py_modules=['flask_pusher'],
     zip_safe=False,
     include_package_data=True,
