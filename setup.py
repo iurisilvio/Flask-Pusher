@@ -24,7 +24,7 @@ setup(
     ],
     test_suite="tests",
     tests_require=[
-        'mock',
+        'mock<=3.0.5',
     ],
     classifiers=[
         'Environment :: Web Environment',
