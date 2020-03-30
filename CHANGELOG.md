@@ -1,5 +1,10 @@
 Changelog
 =========
+3.0
+ * Drop Pusher<1.7 support
+ * Drop Flask<0.12 support
+ * Support latest Flask (1.1.1) and Pusher (2.1.14)
+
 2.0.2
  * Package README, LICENSE and CHANGELOG
 

@@ -1,18 +1,13 @@
+import unittest
 try:
-    import unittest2 as unittest
+    from unittest import mock
 except ImportError:
-    import unittest
+    import mock
 from decimal import Decimal
-import inspect
-
-import mock
 
 import pusher as _pusher
 from flask import Flask, json, render_template_string, url_for
 from flask_pusher import Pusher
-
-argspec = inspect.getargspec(_pusher.Pusher.__init__)
-_json_encoder_support = "json_encoder" in argspec.args
 
 pusher_conf = {
     "PUSHER_APP_ID": "1234",
@@ -24,7 +19,6 @@ SOCKET_ID = "1.42"
 
 
 class CustomJSONEncoder(json.JSONEncoder):
-
     def default(self, o):
         if isinstance(o, Decimal):
             return str(o)
@@ -56,10 +50,6 @@ class PusherClientTest(unittest.TestCase):
             self.assertIsNotNone(pusher.client)
 
     def test_json_encoder(self):
-        if not _json_encoder_support:
-            msg = u"JSON encoder override is not supported on pusher>=1.0,<1.1"
-            self.skipTest(msg)
-
         self.app.json_encoder = CustomJSONEncoder
         pusher = Pusher(self.app)
 
@@ -69,15 +59,6 @@ class PusherClientTest(unittest.TestCase):
             except AttributeError:
                 enc = pusher.client.encoder
         self.assertEqual(CustomJSONEncoder, enc)
-
-    def test_flask_json_patch(self):
-        if _json_encoder_support:
-            msg = u"Only pusher<1.1 is monkey patched"
-            self.skipTest(msg)
-        try:
-            self.assertEqual(json, _pusher.pusher.json)
-        except AttributeError:
-            self.assertEqual(json, _pusher.json)
 
     def test_configuration(self):
         self.app.config["PUSHER_HOST"] = "example.com"
@@ -101,25 +82,22 @@ class PusherClientTest(unittest.TestCase):
             "PUSHER_BACKEND_OPTIONS": {"anything": True},
             "PUSHER_NOTIFICATION_HOST": "example.com",
             "PUSHER_NOTIFICATION_SSL": True,
+            "PUSHER_ENCRYPTION_MASTER_KEY": "SUPERSECRET",
         })
         pusher = Pusher(self.app)
         with self.app.test_request_context():
             self.assertIsNotNone(pusher.client)
+            self.assertFalse(pusher.client.ssl)
+            self.assertEqual(3, pusher.client.timeout)
+            self.assertEqual("api-eu.pusher.com", pusher.client.host)
 
-            if "ssl" in argspec.args:
-                self.assertFalse(pusher.client.ssl)
+            try:
+                self.assertEqual(b"SUPERSECRET", pusher.client._encryption_master_key)
+            except AttributeError:
+                pass
 
-            if "timeout" in argspec.args:
-                self.assertEqual(3, pusher.client.timeout)
-
-            if "cluster" in argspec.args:
-                self.assertEqual("api-eu.pusher.com", pusher.client.host)
-
-            if "backend" in argspec.args:
-                self.assertTrue(backend.called)
-
-            if argspec.keywords == "backend_options":
-                self.assertTrue(backend.call_args[1]["anything"])
+            self.assertTrue(backend.called)
+            self.assertTrue(backend.call_args[1]["anything"])
 
     def test_pusher_key_in_template(self):
         Pusher(self.app)

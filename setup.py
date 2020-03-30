@@ -5,7 +5,7 @@ with open('README.md') as fh:
 
 setup(
     name='Flask-Pusher',
-    version='2.0.2',
+    version='3.0',
     url='https://www.github.com/iurisilvio/Flask-Pusher',
     license='MIT',
     author='Iuri de Silvio',
@@ -25,7 +25,6 @@ setup(
     test_suite="tests",
     tests_require=[
         'mock',
-        'unittest2',
     ],
     classifiers=[
         'Environment :: Web Environment',

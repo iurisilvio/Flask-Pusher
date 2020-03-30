@@ -1,31 +1,30 @@
-import hashlib
-import hmac
-import inspect
-
 from flask import Blueprint, current_app, request, abort, json
+import pusher as _pusher
+from pusher.signature import sign, verify
+
 try:
-    from flask_jsonpify import jsonify
+    import flask_jsonpify
 except ImportError:  # pragma: no cover
     from flask import jsonify
+else:
+    jsonify = flask_jsonpify.jsonify
+    flask_jsonpify__dumps = flask_jsonpify.__dumps
 
-import pusher as _pusher
+    def __dumps(*args, **kwargs):
+        # Patch flask-jsonpify when `request.is_xhr` does not exist.
+        if hasattr(request, 'is_xhr'):
+            return flask_jsonpify__dumps(*args, **kwargs)
 
-try:
-    from pusher.signature import sign, verify
+        indent = None
+        if current_app.config.get('JSONIFY_PRETTYPRINT_REGULAR', False):
+            indent = 2
 
-    argspec = inspect.getargspec(_pusher.Pusher.__init__)
-    if "json_encoder" not in argspec.args:
-        # monkey patch pusher json module because they don't have
-        # any option to define my own json encoder
-        _pusher.pusher.json = json
-except ImportError:
-    _pusher.json = json
+        return json.dumps(
+            args[0] if len(args) is 1 else dict(*args, **kwargs),
+            indent=indent
+        )
 
-    def sign(key, message):
-        return hmac.new(key, message, hashlib.sha256).hexdigest()
-
-    def verify(key, message, signature):
-        return sign(key, message) == signature
+    flask_jsonpify.__dumps = __dumps
 
 
 class _Pusher(_pusher.Pusher):
@@ -97,33 +96,18 @@ class Pusher(object):
         if notification_ssl is not None:
             pusher_kwargs["notification_ssl"] = notification_ssl
 
-        argspec = inspect.getargspec(_pusher.Pusher.__init__)
-        expected_args = set(argspec.args)
-        ignored_args = []
-        for key in list(pusher_kwargs):
-            if key not in expected_args:
-                ignored_args.append(key)
-                del pusher_kwargs[key]
+        encryption_master_key = app.config.get('PUSHER_ENCRYPTION_MASTER_KEY')
+        if encryption_master_key is not None:
+            pusher_kwargs["encryption_master_key"] = encryption_master_key
 
-        if ignored_args:
-            message = u"Flask-Pusher ignored some incompatible args: %s"
-            app.logger.warning(message % ignored_args)
-
-        if "json_encoder" in argspec.args:
-            pusher_kwargs.update({
-                "json_encoder": getattr(app, "json_encoder", None),
-                "json_decoder": getattr(app, "json_decoder", None),
-            })
-        else:
-            pusher_kwargs["encoder"] = getattr(app, "json_encoder", None)
+        pusher_kwargs.update({
+            "json_encoder": getattr(app, "json_encoder", None),
+            "json_decoder": getattr(app, "json_decoder", None),
+        })
 
         backend_options = app.config.get('PUSHER_BACKEND_OPTIONS')
         if backend_options is not None:
-            if argspec.keywords == "backend_options":
-                pusher_kwargs.update(backend_options)
-            else:
-                message = u"Flask-Pusher ignored incompatible backend_options."
-                app.logger.warning(message)
+            pusher_kwargs.update(backend_options)
 
         client = _Pusher(**pusher_kwargs)
 
@@ -228,7 +212,6 @@ class Pusher(object):
 
 
 class Webhooks(object):
-
     CHANNEL_EXISTENCE_EVENT = "channel_existence"
     PRESENCE_EVENT = "presence"
     CLIENT_EVENT = "client"
