@@ -11,10 +11,6 @@ else:
     flask_jsonpify__dumps = flask_jsonpify.__dumps
 
     def __dumps(*args, **kwargs):
-        # Patch flask-jsonpify when `request.is_xhr` does not exist.
-        if hasattr(request, 'is_xhr'):
-            return flask_jsonpify__dumps(*args, **kwargs)
-
         indent = None
         if current_app.config.get('JSONIFY_PRETTYPRINT_REGULAR', False):
             indent = 2
@@ -35,12 +31,8 @@ class _Pusher(_pusher.Pusher):
     Provide backward compatibility to `pusher>=1.6`.
     """
     def __getattr__(self, attr):
-        if hasattr(self, "_pusher_client"):
-            client = self._pusher_client
-            return getattr(client, attr)
-        else:
-            # call super to raise the original exception
-            return getattr(super(_Pusher, self), attr)
+        client = self._pusher_client
+        return getattr(client, attr)
 
 
 class Pusher(object):
@@ -199,16 +191,7 @@ class Pusher(object):
             # must never happen, this request is not from pusher
             abort(404)
 
-        try:
-            channel = self.client[channel_name]
-        except TypeError:
-            # pusher>=1.0
-            auth = self.client.authenticate(channel_name, *auth_args)
-        else:
-            # pusher<1.0
-            auth = channel.authenticate(*auth_args)
-
-        return auth
+        return self.client.authenticate(channel_name, *auth_args)
 
 
 class Webhooks(object):

@@ -182,6 +182,10 @@ class PusherAuthTest(unittest.TestCase):
                                           "socket_id": SOCKET_ID})
         self.assertEqual(404, response.status_code)
 
+    def test_pretty_print_true(self):
+        self.app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+        self.test_no_channel_data_in_private_channel()
+
 
 class PusherBatchAuthTest(unittest.TestCase):
 
